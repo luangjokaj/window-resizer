@@ -133,7 +133,10 @@ function Welcome() {
               <Callout $type="info" $icon="MousePointerClick">
                 Click the Window Resizer icon in your browser's toolbar to open
                 it. It opens in its own small window rather than a dropdown, so
-                it stays put while the windows it resizes take and lose focus.
+                it stays put while the windows it resizes take and lose focus. A
+                newly installed extension is usually tucked behind the
+                puzzle-piece menu — open that menu and pin Window Resizer to
+                keep it one click away.
               </Callout>
 
               <Section title="What it does">
