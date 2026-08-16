@@ -1,0 +1,26 @@
+packages:
+  - "apps/*"
+
+allowBuilds:
+  "@parcel/watcher": false
+  "@swc/core": false
+  bufferutil: false
+  esbuild: false
+  lmdb: false
+  msgpackr-extract: false
+  sharp: false
+  utf-8-validate: false
+
+ignoredBuiltDependencies:
+  - "@parcel/watcher"
+  - "@swc/core"
+  - esbuild
+  - lmdb
+  - msgpackr-extract
+  - sharp
+
+minimumReleaseAge: 1440
+
+overrides:
+  "@types/react": "^19.2.14"
+  "@types/react-dom": "^19.2.3"

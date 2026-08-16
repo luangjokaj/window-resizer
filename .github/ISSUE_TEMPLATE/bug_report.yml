@@ -1,0 +1,89 @@
+name: Bug report
+description: Report a problem with Window Resizer
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please redact anything sensitive from screenshots — tab titles and URLs show up in the window picker. Security vulnerabilities should be reported privately via [GitHub security advisories](https://github.com/luangjokaj/window-resizer/security/advisories/new), not as public issues.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead. If the panel showed a message, quote it exactly — it names what refused.
+      placeholder: I selected the second window and clicked 1440 x 900, but ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps so we can reproduce the issue.
+      placeholder: |
+        1. Open two browser windows
+        2. Click the Window Resizer icon
+        3. Select the second window, click ...
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser and operating system
+      description: Window management differs a lot between platforms, so this matters more here than usual.
+      options:
+        - Chrome on macOS
+        - Chrome on Windows
+        - Chrome on Linux
+        - Edge
+        - Brave, Arc, or another Chromium browser
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      description: Shown in the extensions list of your browser.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Install method
+      options:
+        - Chrome Web Store
+        - Local build (Load unpacked)
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part is affected?
+      options:
+        - Opening the panel from the toolbar
+        - Window picker (list, sizes, tabs, selection)
+        - Resizing (wrong size, no effect, wrong window)
+        - Match page height
+        - Saved sizes (add, delete, reset)
+        - Theming or layout
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: window-state
+    attributes:
+      label: Window state
+      description: Was the target window maximized, fullscreen, minimized, or already a normal window? On a second display or a scaled display?
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser version, OS version, display resolution and scaling.
+      placeholder: |
+        - Browser: Chrome 140
+        - OS: macOS 15.2
+        - Display: 3456x2234, 200% scaling

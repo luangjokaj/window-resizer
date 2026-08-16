@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an idea for Window Resizer
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Window Resizer is deliberately small: it resizes windows, and it collects nothing. Proposals that would add telemetry, an account, or a backend will be declined — that constraint is the product, not an oversight.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation you run into, not the solution you have in mind.
+      placeholder: When I test a layout across breakpoints, I ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have considered
+      description: Including doing it by hand, or with another tool.
+    validations:
+      required: false
