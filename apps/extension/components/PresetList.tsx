@@ -1,10 +1,14 @@
 /**
  * The saved sizes, or the way back to them.
  *
- * An empty list is a real, reachable state — ~lib/presets stores "I deleted
- * them all" as an empty array and honours it, rather than quietly restoring the
+ * An empty list is a real, reachable state: ~lib/presets stores "I deleted them
+ * all" as an empty array and honours it, rather than quietly restoring the
  * defaults on the next read. So the empty state has to carry the only action
  * that undoes it, otherwise the list becomes permanently empty by accident.
+ *
+ * Two columns, and no frame around them. Each tile already carries its own
+ * border, and a panel around a grid of bordered tiles is a frame inside a
+ * frame; the grid is legible as one object without it.
  */
 
 import styled from "styled-components";
@@ -12,9 +16,9 @@ import { Button, Callout, Icon } from "cherry-styled-components";
 import { PresetRow } from "~components/PresetRow";
 import type { Preset } from "~lib/presets";
 
-const List = styled.ul`
-  display: flex;
-  flex-direction: column;
+const Grid = styled.ul`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: ${({ theme }) => theme.spacing.radius.xs};
   margin: 0;
   padding: 0;
@@ -63,7 +67,7 @@ export function PresetList({
   }
 
   return (
-    <List>
+    <Grid>
       {presets.map((preset) => (
         <PresetRow
           key={preset.name}
@@ -72,6 +76,6 @@ export function PresetList({
           preset={preset}
         />
       ))}
-    </List>
+    </Grid>
   );
 }

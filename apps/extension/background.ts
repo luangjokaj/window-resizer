@@ -19,10 +19,20 @@ import { storageGet, storageSet } from "~lib/storage";
 const RESIZER_PAGE = "tabs/resizer.html";
 const WELCOME_PAGE = "tabs/welcome.html";
 
-/** Roughly a phone-shaped panel: wide enough for two dimension fields side by
- *  side, tall enough to show the presets without scrolling on most displays. */
+/**
+ * Roughly a phone-shaped panel: wide enough for two dimension fields side by
+ * side, tall enough to show the presets without scrolling on most displays.
+ *
+ * The height tracks what the page actually measures. With the default seven
+ * saved sizes the column is a little over 600px tall and grows by one row per
+ * open window, so this covers the ordinary case of two or three windows with
+ * nothing to scroll to and nothing left empty underneath. Someone running many
+ * windows at once scrolls the list, which is the same trade the panel has
+ * always made; sizing for that case instead would leave everyone else looking
+ * at 200px of blank surface.
+ */
 const RESIZER_WINDOW_WIDTH = 460;
-const RESIZER_WINDOW_HEIGHT = 820;
+const RESIZER_WINDOW_HEIGHT = 720;
 
 function pageUrl(page: string): string {
   return chrome.runtime.getURL(page);

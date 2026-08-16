@@ -5,6 +5,25 @@ All notable changes to Window Resizer are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **The panel is redesigned for density.** One shared visual vocabulary
+  (`components/Panel.tsx`: `Eyebrow`, `Hint`, `Numeric`, `Count`,
+  `MiniAction`, `Panel`, `PanelBlock`) replaces the old `Section.tsx`.
+  Saved sizes are a two-column tile grid, the custom size form
+  collapsed to one row, headings became tracked legends, window rows
+  read as one line instead of two, and the footer merged into the
+  header. With one window open the panel drops from roughly 1050px
+  tall to 612px.
+- **Match page height is now a single row** (`MatchHeightToggle.tsx`)
+  instead of a full section, and moved to the bottom of the panel
+  below the sizes it modifies.
+- `RESIZER_WINDOW_HEIGHT` dropped from 820 to 720 so the shorter panel
+  does not open with dead space underneath it.
+- The welcome page picked up the same vocabulary as the panel.
+
 ## [0.1.0] - 2026-08-16
 
 A full rebuild. The extension keeps what it always did — pick a window, click a

@@ -2,18 +2,24 @@
  * Choosing which window gets resized.
  *
  * Three states, deliberately distinct. A `null` list means this runtime never
- * gave the extension its windows API at all — nothing here will ever work, so
- * it gets an alert rather than the empty state's quiet "nothing yet". An empty
+ * gave the extension its windows API at all: nothing here will ever work, so
+ * it gets a warning rather than the empty state's quiet "nothing yet". An empty
  * array is the ordinary case of every window being closed or being one of ours,
  * which is not a failure and must not look like one.
  *
  * Selection is a real radio group instead of clickable rows. That buys arrow-key
- * navigation, the roving tab stop, and the label/control association for free —
+ * navigation, the roving tab stop, and the label/control association for free,
  * all of which a `<div onClick>` would have to reimplement, and usually doesn't.
  *
- * Only one window's tabs are expanded at a time. The page is 460px wide inside a
- * 820px-tall window; two open tab lists push the resize controls off-screen,
- * which is the one thing someone came here to reach.
+ * The rows are one line each and share a single frame, because this list is
+ * read as a column: the ordinal on one x, the size on another, so the eye finds
+ * the target by position rather than by re-reading each row. Everything that
+ * would push a second line (window state, incognito) is a fixed-width glyph
+ * with the word in its tooltip and its accessible name. Two badges spelled out
+ * is wider than the 460px column they sit in.
+ *
+ * Only one window's tabs are expanded at a time. Two open tab lists push the
+ * resize controls off-screen, which is the one thing someone came here to reach.
  */
 
 import { useState } from "react";
@@ -25,91 +31,131 @@ import {
   Input,
   alpha,
   styledSmall,
+  type IconProps,
 } from "cherry-styled-components";
-import { Hint, Numeric } from "~components/Section";
+import { Hint, Numeric, Panel } from "~components/Panel";
 import type { BrowserTab, BrowserWindow } from "~lib/windows";
 
 /** One group name for the whole list, which is what makes the arrow keys move
  *  between rows instead of within one. */
 const RADIO_GROUP = "resize-target";
 
+/** A window that is not `normal` cannot take bounds until it is restored, so
+ *  the state is worth showing. Anything outside this map gets no glyph rather
+ *  than a generic one: a marker nobody can read is worse than no marker. */
+const STATE_ICONS: Partial<Record<string, IconProps>> = {
+  fullscreen: "Expand",
+  maximized: "Maximize2",
+  minimized: "Minimize2",
+};
+
 /**
- * A radiogroup rather than a list. The rows *are* the options — announcing
- * them as "list, 3 items" and then again as three loose radios is the worse of
- * the two readings, and `role="radiogroup"` on a `<ul>` would strip the list
- * item semantics anyway.
+ * A radiogroup rather than a list. The rows *are* the options: announcing them
+ * as "list, 3 items" and then again as three loose radios is the worse of the
+ * two readings, and `role="radiogroup"` on a `<ul>` would strip the list item
+ * semantics anyway.
  */
 const List = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.radius.xs};
+  min-width: 0;
 `;
 
+/**
+ * The selected row is marked twice over: a tint, and a bar down its leading
+ * edge. The bar is an inset shadow rather than a border so that turning it on
+ * cannot shift the row's contents by two pixels, which at this density reads as
+ * the list twitching every time the target changes.
+ */
 const Row = styled.div<{ $selected: boolean }>`
-  border: solid 1px
-    ${({ $selected, theme }) =>
-      $selected ? theme.colors.primary : theme.colors.grayLight};
-  border-radius: ${({ theme }) => theme.spacing.radius.xs};
+  min-width: 0;
   background: ${({ $selected, theme }) =>
-    $selected ? alpha(theme.colors.primary, 8) : theme.colors.light};
+    $selected ? alpha(theme.colors.primary, 10) : "transparent"};
+  box-shadow: ${({ $selected, theme }) =>
+    $selected ? `inset 2px 0 0 ${theme.colors.primary}` : "none"};
+  transition: background 150ms ease;
+
+  &:not(:first-child) {
+    border-top: solid 1px ${({ theme }) => theme.colors.grayLight};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 `;
 
 const RowHead = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.radius.xs};
+  min-width: 0;
   padding: ${({ theme }) => theme.spacing.radius.xs};
 `;
 
 /**
  * The clickable body of the row. A real `<label>` so the whole thing selects
  * the radio, which makes the hit target the size the row looks rather than the
- * size of the 24px dot.
+ * size of the 18px dot.
  */
 const RowLabel = styled.label`
   display: flex;
   flex: 1 1 auto;
-  flex-direction: column;
-  /* Optical, not a rhythm step: the two lines are one label, so they sit
-     closer than any gap in the theme's scale. */
-  gap: 2px;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.radius.xs};
   min-width: 0;
   cursor: pointer;
 `;
 
-/* Both title and meta wrap: a window that is incognito *and* maximized carries
-   two badges, and at 460px that is wider than the column they sit in. */
-const RowTitle = styled.span`
+const RowName = styled.span`
   ${({ theme }) => styledSmall(theme)};
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.radius.xs};
+  overflow: hidden;
+  min-width: 0;
   color: ${({ theme }) => theme.colors.dark};
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
-const RowMeta = styled.span`
+/**
+ * Pushed to the trailing edge, and last in the row, so that every window's
+ * size ends on the same x no matter how much identifying text precedes it.
+ * With the tab count after it instead, "1 tab" and "12 tabs" moved the digits
+ * from row to row, which is exactly what a column of numbers must not do.
+ */
+const RowSize = styled(Numeric)`
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: ${({ theme }) => theme.spacing.radius.xs};
+  color: ${({ theme }) => theme.colors.dark};
+`;
+
+const RowTabs = styled.span`
   ${({ theme }) => styledSmall(theme)};
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.radius.xs};
+  flex: 0 0 auto;
   color: ${({ theme }) => theme.colors.grayDark};
+  white-space: nowrap;
 `;
 
+/** The ordinal and the tab count are both identifiers sitting six pixels
+ *  apart, which is close enough to read as one phrase. The dot is cheaper than
+ *  the gap it would otherwise take to separate them. */
+const Dot = styled.span`
+  flex: 0 0 auto;
+  color: ${({ theme }) => theme.colors.gray};
+`;
+
+/** A fixed box, so a window that picks up a badge does not become a taller row
+ *  than the one above it. */
 const Badge = styled.span`
-  ${({ theme }) => styledSmall(theme)};
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.radius.xs};
-  padding: 0 ${({ theme }) => theme.spacing.radius.xs};
-  border-radius: ${({ theme }) => theme.spacing.radius.xl};
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: ${({ theme }) => theme.spacing.radius.xs};
   background: ${({ theme }) => alpha(theme.colors.grayDark, 15)};
   color: ${({ theme }) => theme.colors.grayDark};
-  font-weight: 400;
-  text-transform: capitalize;
-  white-space: nowrap;
 `;
 
 const Chevron = styled.span<{ $open: boolean }>`
@@ -126,8 +172,11 @@ const TabList = styled.ul`
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: 0;
-  border-top: solid 1px ${({ theme }) => theme.colors.grayLight};
+  /* Indented past the radio so the tabs read as belonging to the row above
+     rather than as more rows in the same list. */
+  padding: 0 ${({ theme }) => theme.spacing.radius.xs}
+    ${({ theme }) => theme.spacing.radius.xs}
+    ${({ theme }) => theme.spacing.radius.lg};
   list-style: none;
 `;
 
@@ -136,19 +185,18 @@ const TabRow = styled.li`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.radius.xs};
-  padding: ${({ theme }) => theme.spacing.radius.xs};
+  min-width: 0;
+  /* Optical: a tab is one line of 12px text, so it wants less air around it
+     than any padding step in the theme's scale would give. */
+  padding: 2px 0;
   color: ${({ theme }) => theme.colors.grayDark};
-
-  &:not(:last-child) {
-    border-bottom: solid 1px ${({ theme }) => theme.colors.grayLight};
-  }
 `;
 
 /** Fixed box so a missing or slow favicon does not shift the title. */
 const Favicon = styled.img`
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
 `;
 
@@ -176,9 +224,7 @@ const ActiveDot = styled.span`
 `;
 
 const Placeholder = styled.div`
-  padding: ${({ theme }) => theme.spacing.radius.xs};
-  border: dashed 1px ${({ theme }) => theme.colors.grayLight};
-  border-radius: ${({ theme }) => theme.spacing.radius.xs};
+  padding: ${({ theme }) => theme.spacing.radius.lg};
   text-align: center;
 `;
 
@@ -195,7 +241,7 @@ function TabEntry({ tab }: { tab: BrowserTab }) {
         <Favicon alt="" src={tab.favIconUrl} />
       ) : (
         <FaviconFallback>
-          <Icon name="Globe" size={16} />
+          <Icon name="Globe" size={14} />
         </FaviconFallback>
       )}
       <TabTitle title={tab.title}>{tab.title}</TabTitle>
@@ -225,9 +271,11 @@ export function WindowPicker({
   // a statement that is both wrong and alarming.
   if (windows === undefined) {
     return (
-      <Placeholder>
-        <Hint>Looking for open windows…</Hint>
-      </Placeholder>
+      <Panel>
+        <Placeholder>
+          <Hint>Looking for open windows…</Hint>
+        </Placeholder>
+      </Panel>
     );
   }
 
@@ -242,91 +290,107 @@ export function WindowPicker({
 
   if (windows.length === 0) {
     return (
-      <Placeholder>
-        <Hint>No browser windows are open yet.</Hint>
-      </Placeholder>
+      <Panel>
+        <Placeholder>
+          <Hint>No browser windows are open yet.</Hint>
+        </Placeholder>
+      </Panel>
     );
   }
 
   return (
-    <List aria-label="Target window" role="radiogroup">
-      {windows.map((browserWindow, index) => {
-        const position = index + 1;
-        const radioId = `window-${browserWindow.id}`;
-        const expanded = expandedId === browserWindow.id;
+    <Panel $flush>
+      <List aria-label="Target window" role="radiogroup">
+        {windows.map((browserWindow, index) => {
+          const position = index + 1;
+          const radioId = `window-${browserWindow.id}`;
+          const expanded = expandedId === browserWindow.id;
+          const stateIcon = STATE_ICONS[browserWindow.state];
 
-        return (
-          <Row
-            key={browserWindow.id}
-            $selected={browserWindow.id === selectedId}
-          >
-            <RowHead>
-              <Input
-                checked={browserWindow.id === selectedId}
-                id={radioId}
-                name={RADIO_GROUP}
-                onChange={() => onSelect(browserWindow.id)}
-                type="radio"
-              />
-              <RowLabel htmlFor={radioId}>
-                <RowTitle>
-                  Window {position}
+          return (
+            <Row
+              key={browserWindow.id}
+              $selected={browserWindow.id === selectedId}
+            >
+              <RowHead>
+                <Input
+                  checked={browserWindow.id === selectedId}
+                  id={radioId}
+                  name={RADIO_GROUP}
+                  onChange={() => onSelect(browserWindow.id)}
+                  type="radio"
+                  $size="small"
+                />
+                <RowLabel htmlFor={radioId}>
+                  <RowName>Window {position}</RowName>
+                  {/* The word rides on the glyph's accessible name and on the
+                      tooltip rather than on visible text. "Incognito" and
+                      "maximized" spelled out is wider than the column they sit
+                      in, and one window can carry both at once. */}
                   {browserWindow.incognito ? (
-                    <Badge>
-                      <Icon name="VenetianMask" size={12} /> Incognito
+                    <Badge title="Incognito window">
+                      <Icon
+                        aria-label="Incognito window"
+                        name="VenetianMask"
+                        size={12}
+                      />
                     </Badge>
                   ) : null}
-                  {browserWindow.state !== "normal" ? (
-                    <Badge>{browserWindow.state}</Badge>
+                  {stateIcon ? (
+                    <Badge title={`Window is ${browserWindow.state}`}>
+                      <Icon
+                        aria-label={`Window is ${browserWindow.state}`}
+                        name={stateIcon}
+                        size={12}
+                      />
+                    </Badge>
                   ) : null}
-                </RowTitle>
-                <RowMeta>
-                  <Numeric>
+                  <Dot aria-hidden="true">·</Dot>
+                  <RowTabs>{tabCountLabel(browserWindow.tabs.length)}</RowTabs>
+                  <RowSize>
                     {browserWindow.width} × {browserWindow.height}
-                  </Numeric>
-                  <span aria-hidden="true">·</span>
-                  <span>{tabCountLabel(browserWindow.tabs.length)}</span>
-                </RowMeta>
-              </RowLabel>
-              <IconButton
-                aria-label={`Bring window ${position} to the front`}
-                onClick={() => onFocus(browserWindow.id)}
-                title={`Bring window ${position} to the front`}
-                $size="small"
-              >
-                <Icon name="Eye" />
-              </IconButton>
-              <IconButton
-                aria-controls={`${radioId}-tabs`}
-                aria-expanded={expanded}
-                aria-label={
-                  expanded
-                    ? `Hide the tabs in window ${position}`
-                    : `Show the tabs in window ${position}`
-                }
-                onClick={() =>
-                  setExpandedId(expanded ? null : browserWindow.id)
-                }
-                $active={expanded}
-                $size="small"
-              >
-                <Chevron $open={expanded}>
-                  <Icon name="ChevronDown" />
-                </Chevron>
-              </IconButton>
-            </RowHead>
-            {expanded ? (
-              <TabList id={`${radioId}-tabs`}>
-                {/* Position joins the key: a tab the browser reported without
-                    an id becomes -1, and two of those would collide. */}
-                {browserWindow.tabs.map((tab, tabIndex) => (
-                  <TabEntry key={`${tab.id}-${tabIndex}`} tab={tab} />
-                ))}
-              </TabList>
-            ) : null}
-          </Row>
-        );
-      })}
-    </List>
+                  </RowSize>
+                </RowLabel>
+                <IconButton
+                  aria-label={`Bring window ${position} to the front`}
+                  onClick={() => onFocus(browserWindow.id)}
+                  title={`Bring window ${position} to the front`}
+                  $size="small"
+                >
+                  <Icon name="Eye" />
+                </IconButton>
+                <IconButton
+                  aria-controls={`${radioId}-tabs`}
+                  aria-expanded={expanded}
+                  aria-label={
+                    expanded
+                      ? `Hide the tabs in window ${position}`
+                      : `Show the tabs in window ${position}`
+                  }
+                  onClick={() =>
+                    setExpandedId(expanded ? null : browserWindow.id)
+                  }
+                  $active={expanded}
+                  $size="small"
+                >
+                  <Chevron $open={expanded}>
+                    <Icon name="ChevronDown" />
+                  </Chevron>
+                </IconButton>
+              </RowHead>
+              {expanded ? (
+                <TabList id={`${radioId}-tabs`}>
+                  {/* Position joins the key: a tab the browser reported without
+                      an id becomes -1, and two of those would collide. */}
+                  {browserWindow.tabs.map((tab, tabIndex) => (
+                    <TabEntry key={`${tab.id}-${tabIndex}`} tab={tab} />
+                  ))}
+                </TabList>
+              ) : null}
+            </Row>
+          );
+        })}
+      </List>
+    </Panel>
   );
 }
