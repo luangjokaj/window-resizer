@@ -141,8 +141,9 @@ const Glyph = styled.span`
     transform: translate(-50%, -50%) translateY(2px);
     color: ${({ theme }) => theme.colors.dark};
     /* Below the type scale's smallest step on purpose: this is a numeral
-       inside a 20px glyph, not a piece of text. */
-    font-size: 10px;
+       inside a 20px glyph, not a piece of text. Kept bold, because at this
+       size the weight is what carries it rather than the size. */
+    font-size: 9px;
     font-style: normal;
     font-weight: 700;
     line-height: 1;

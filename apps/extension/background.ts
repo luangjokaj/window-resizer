@@ -23,20 +23,19 @@ const WELCOME_PAGE = "tabs/welcome.html";
  * Roughly a phone-shaped panel: wide enough for two dimension fields side by
  * side, tall enough to show the presets without scrolling on most displays.
  *
- * The height tracks what the page actually measures. With the default seven
- * saved sizes and one other window open the column measures 800px, and grows by
- * 49px per additional window, so this covers the ordinary one- or two-window
- * case with nothing to scroll to and nothing left empty underneath. The value is the
- * window's outer height, and a popup window's own title bar eats 30-40px of it
- * on most platforms, which is what the slack above 800 is for.
+ * The height is the window's outer height, so a popup's own title bar eats
+ * 30-40px of it on most platforms. With the default seven saved sizes and one
+ * other window open the column measures 800px and grows by 49px per additional
+ * window, so at this value the last row sits about a title bar's worth below
+ * the fold and the panel opens very slightly scrolled.
  *
- * Someone running many windows at once scrolls the list, which is the same
- * trade the panel has always made; sizing for that case instead would leave
- * everyone else looking at 200px of blank surface. A display shorter than this
- * clamps the window and the list scrolls, which is also the old behaviour.
+ * That is the deliberate trade: a window that reads as the intended size beats
+ * one sized to guarantee the final row is visible, and someone running several
+ * windows at once scrolls the list either way. A display shorter than this
+ * clamps the window and the list scrolls, which is the old behaviour.
  */
 const RESIZER_WINDOW_WIDTH = 460;
-const RESIZER_WINDOW_HEIGHT = 880;
+const RESIZER_WINDOW_HEIGHT = 800;
 
 function pageUrl(page: string): string {
   return chrome.runtime.getURL(page);

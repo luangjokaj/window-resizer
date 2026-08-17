@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   input borders, and placeholder text all survive on it.
 - **Match page height is a single row** (`MatchHeightToggle.tsx`)
   inside the Window Settings card rather than a full section.
-- `RESIZER_WINDOW_HEIGHT` moved from 720 to 880, which is what the
+- `RESIZER_WINDOW_HEIGHT` moved from 720 to 800, matching what the
   card design measures with one other window open and the seven
   default sizes.
 - The welcome page is built from the same cards as the panel.

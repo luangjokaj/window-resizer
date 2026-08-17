@@ -309,7 +309,7 @@ function ResizerPage() {
 
       if (!(await saveMatchInnerHeight(true))) {
         setMatchInnerHeight(false);
-        notifyError("Could not save that setting — storage refused.");
+        notifyError("Could not save that setting: storage refused.");
       }
     });
   }
@@ -358,7 +358,7 @@ function ResizerPage() {
 
   async function removePreset(preset: Preset) {
     if (!(await deletePreset(preset.name))) {
-      notifyError(`Could not delete ${preset.name} — storage refused.`);
+      notifyError(`Could not delete ${preset.name}: storage refused.`);
       return;
     }
 
@@ -368,7 +368,7 @@ function ResizerPage() {
 
   async function restoreDefaults() {
     if (!(await resetPresets())) {
-      notifyError("Could not restore the default sizes — storage refused.");
+      notifyError("Could not restore the default sizes: storage refused.");
       return;
     }
 
