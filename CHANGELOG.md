@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **An About dialog**, opened by a new question-mark button beside the
+  theme toggle (`components/AboutModal.tsx`). It carries the installed
+  version, what the extension does, a link to the repository, and how to
+  get in touch. The panel has no menu bar and no footer, so this is the
+  only place those live.
+
 ### Changed
 
 - **The panel returns to the card design, in both themes.** One shared

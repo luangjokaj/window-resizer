@@ -28,12 +28,14 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import styled, { keyframes } from "styled-components";
 import {
   Icon,
+  IconButton,
   ThemeToggle,
   ToastNotifications,
   ToastNotificationsProvider,
   styledSmall,
   useToastNotifications,
 } from "cherry-styled-components";
+import { AboutModal } from "~components/AboutModal";
 import { Card, MiniAction, Numeric, pageSurface } from "~components/Card";
 import { CustomSizeForm } from "~components/CustomSizeForm";
 import { Logo } from "~components/Logo";
@@ -194,6 +196,7 @@ function ResizerPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [matchInnerHeight, setMatchInnerHeight] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   const notifyError = (text: string) =>
     addNotification(text, { color: "error", autoHide: TOAST_ERROR_MS });
@@ -381,8 +384,22 @@ function ResizerPage() {
       <Header>
         <Logo width={160} />
         <VersionChip>{VERSION}</VersionChip>
+        <IconButton
+          aria-label="About Window Resizer"
+          onClick={() => setAboutOpen(true)}
+          title="About Window Resizer"
+          type="button"
+        >
+          <Icon name="CircleQuestionMark" />
+        </IconButton>
         <ThemeToggle aria-label="Switch between the light and dark theme" />
       </Header>
+
+      <AboutModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+        version={VERSION}
+      />
 
       <Card title="Select Window">
         <WindowPicker
