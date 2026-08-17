@@ -16,12 +16,12 @@
  * for a person. They are shown verbatim, never prefixed and never re-worded,
  * because a second vocabulary for the same failure is how the two drift apart.
  *
- * The order of the blocks is the order of the sentence someone is composing:
- * which window, then what size, then which saved size, and last the mode that
- * changes what a height means. The mode used to sit second, above the numbers
- * it reinterprets, and cost a five-line paragraph to say so; it is now a row.
- * Everything on the page is sized against the fact that scrolling to reach a
- * preset defeats the reason this is a window and not a popup.
+ * The order of the cards is the order of the sentence someone is composing:
+ * which window, how heights are counted in it, a size to type, and the sizes
+ * already saved. Everything on the page is sized against the fact that
+ * scrolling to reach a preset defeats the reason this is a window and not a
+ * popup, which is why the card rows are 12px rather than the 20px the design
+ * originally used.
  */
 
 import { useEffect, useState, type ChangeEvent } from "react";
@@ -31,19 +31,13 @@ import {
   ThemeToggle,
   ToastNotifications,
   ToastNotificationsProvider,
-  alpha,
+  styledSmall,
   useToastNotifications,
 } from "cherry-styled-components";
+import { Card, MiniAction, Numeric, pageSurface } from "~components/Card";
 import { CustomSizeForm } from "~components/CustomSizeForm";
 import { Logo } from "~components/Logo";
 import { MatchHeightToggle } from "~components/MatchHeightToggle";
-import {
-  Count,
-  MiniAction,
-  Numeric,
-  Panel,
-  PanelBlock,
-} from "~components/Panel";
 import { PresetList } from "~components/PresetList";
 import { WindowPicker } from "~components/WindowPicker";
 import { ThemeProvider } from "~lib/ThemeProvider";
@@ -90,11 +84,6 @@ const TOAST_ERROR_MS = 7000;
  */
 const WINDOW_REFRESH_DELAY_MS = 120;
 
-/** The window background.ts opens, and the box the wash below is drawn into.
- *  Held here so the gradient stops describing a width the page does not have
- *  if that constant ever moves. */
-const PANEL_WIDTH_PX = 460;
-
 function readVersion(): string {
   try {
     return chrome.runtime.getManifest().version;
@@ -122,31 +111,15 @@ const riseIn = keyframes`
 `;
 
 const Shell = styled.main`
+  ${pageSurface};
   display: flex;
+  box-sizing: border-box;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.radius.lg};
-  box-sizing: border-box;
   width: 100%;
   min-height: 100vh;
-  padding: ${({ theme }) => theme.spacing.padding.xs};
+  padding: ${({ theme }) => theme.spacing.radius.lg};
   color: ${({ theme }) => theme.colors.dark};
-  /* A brand wash that fades out below the header, so the top of the window
-     carries the product's blue without a solid bar eating 60px of a short
-     column. Both stops are fixed distances, not percentages: the page grows
-     with the number of saved sizes, and a percentage would slide the wash
-     further down the page every time someone adds one. */
-  background:
-    radial-gradient(
-      ${PANEL_WIDTH_PX}px 260px at 12% 0%,
-      ${({ theme }) => alpha(theme.colors.primary, 16)},
-      transparent 70%
-    ),
-    linear-gradient(
-      180deg,
-      ${({ theme }) => alpha(theme.colors.primary, 7)},
-      transparent 300px
-    ),
-    ${({ theme }) => theme.colors.light};
 
   > * {
     animation: ${riseIn} 180ms ease-out both;
@@ -185,6 +158,7 @@ const Header = styled.header`
  *  beside it already says which extension this is, which is what lets the
  *  footer that used to carry both disappear. */
 const VersionChip = styled(Numeric)`
+  ${({ theme }) => styledSmall(theme)};
   flex: 0 0 auto;
   margin-right: auto;
   padding: 0 ${({ theme }) => theme.spacing.radius.xs};
@@ -410,33 +384,37 @@ function ResizerPage() {
         <ThemeToggle aria-label="Switch between the light and dark theme" />
       </Header>
 
-      <PanelBlock title="Target window">
+      <Card title="Select Window">
         <WindowPicker
           onFocus={focusWindow}
           onSelect={setSelectedId}
           selectedId={selectedId}
           windows={windows}
         />
-      </PanelBlock>
+      </Card>
 
-      <PanelBlock title="Size">
-        <Panel>
-          <CustomSizeForm
-            matchInnerHeight={matchInnerHeight}
-            onInvalid={notifyError}
-            onResize={({ height, width }) => {
-              void applySize(width, height);
-            }}
-            onSave={({ height, type, width }) => {
-              void savePreset(type, width, height);
-            }}
-          />
-        </Panel>
-      </PanelBlock>
+      <Card title="Window Settings">
+        <MatchHeightToggle
+          checked={matchInnerHeight}
+          onChange={handleMatchInnerHeightChange}
+        />
+      </Card>
 
-      <PanelBlock
-        title="Saved sizes"
-        badge={presets.length > 0 ? <Count>{presets.length}</Count> : null}
+      <Card title="Add New">
+        <CustomSizeForm
+          matchInnerHeight={matchInnerHeight}
+          onInvalid={notifyError}
+          onResize={({ height, width }) => {
+            void applySize(width, height);
+          }}
+          onSave={({ height, type, width }) => {
+            void savePreset(type, width, height);
+          }}
+        />
+      </Card>
+
+      <Card
+        title="Select Size"
         /* An emptied list already offers this, right where the sizes were.
            Two identical controls a few rows apart is the smell, not the
            duplication of intent. */
@@ -450,7 +428,7 @@ function ResizerPage() {
               type="button"
             >
               <Icon name="RotateCcw" />
-              Reset defaults
+              Reset
             </MiniAction>
           ) : null
         }
@@ -467,14 +445,7 @@ function ResizerPage() {
           }}
           presets={presets}
         />
-      </PanelBlock>
-
-      <Panel>
-        <MatchHeightToggle
-          checked={matchInnerHeight}
-          onChange={handleMatchInnerHeightChange}
-        />
-      </Panel>
+      </Card>
     </Shell>
   );
 }

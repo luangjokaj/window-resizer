@@ -3,8 +3,10 @@
  *
  * This is the only place a color is written by hand, and it has to be: the
  * stylesheet lands before React does, so without a body background painted here
- * a dark-mode page flashes white on every open. The two values below mirror
- * `theme.colors.light` in ~lib/theme — keep them in step.
+ * a dark-mode page flashes white on every open. The two values below are the
+ * flattened result of `pageSurface` in ~components/Card, which is
+ * `colors.light` dropped 2% and washed with 5% of `colors.primary`, which is
+ * the ground the cards sit on. Keep the three in step.
  *
  * Everything past the shell comes from Cherry's GlobalStyles and the themed
  * styled-components; nothing else belongs in this file.
@@ -25,11 +27,11 @@ body {
   /* The resizer runs in a 460px popup window with no browser chrome. A
      horizontal scrollbar there is not an inconvenience, it is lost width. */
   overflow-x: hidden;
-  background-color: #ffffff;
+  background-color: #eef3fa;
 }
 
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #080c14;
+    background-color: #0b1320;
   }
 }

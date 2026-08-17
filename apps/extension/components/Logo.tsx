@@ -3,7 +3,7 @@
  *
  * Ported from the original extension's artwork with two deliberate changes.
  *
- * The shipped mark knocked its window frame out in flat white — an outer ring
+ * The shipped mark knocked its window frame out in flat white: an outer ring
  * and the screen behind the arrow. On white that is invisible; on the dark
  * theme's near-black surface it is a glaring halo. The knockout is dropped
  * entirely instead of recolored: the blue glyph never extended into it, so on a
@@ -13,8 +13,8 @@
  *
  * The wordmark text shipped as #075985, a deep blue that disappears against
  * near-black. Those paths are `currentColor` here so the theme drives them from
- * the parent, while the glyph keeps the fixed brand blue — the mark is one
- * artwork in both schemes, not a token that recolors.
+ * the parent, while the glyph keeps the fixed brand blue, because the mark is
+ * one artwork in both schemes, not a token that recolors.
  */
 
 import styled from "styled-components";

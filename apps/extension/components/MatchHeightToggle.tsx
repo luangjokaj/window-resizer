@@ -1,11 +1,10 @@
 /**
- * The one setting on the page, as a single row rather than as a section.
+ * The one setting on the page, as a single row.
  *
  * It used to be a full block: a heading, a five-line explanation, and a switch
  * underneath. That is roughly 150px of a 460px-wide window spent on a control
- * most people set once, and it sat second from the top, above the sizes it
- * modifies. Here it is last and one row tall, which is the weight a persistent
- * mode deserves next to the actions it qualifies.
+ * most people set once. Here it is one row of one card, which is the weight a
+ * persistent mode deserves next to the actions it qualifies.
  *
  * The explanation keeps its worked example. Shortening the copy to "matches the
  * page height" would fit on one line and tell nobody what changes, and the
@@ -13,20 +12,14 @@
  * meaning another.
  *
  * The glyph carries the state as well as the label does: brand-coloured while
- * the mode is on, gray while it is off, so a glance at the bottom of the panel
- * answers "are my heights viewport heights right now".
+ * the mode is on, gray while it is off, so a glance answers "are my heights
+ * viewport heights right now".
  */
 
 import type { ChangeEvent } from "react";
 import styled from "styled-components";
-import { Icon, Toggle, styledSmall } from "cherry-styled-components";
-import { Hint } from "~components/Panel";
-
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.radius.lg};
-`;
+import { Icon, Toggle } from "cherry-styled-components";
+import { Hint, Tile, TileName } from "~components/Card";
 
 const Copy = styled.div`
   display: flex;
@@ -50,17 +43,16 @@ const Glyph = styled.span<{ $on: boolean }>`
   flex: 0 0 auto;
   color: ${({ $on, theme }) =>
     $on ? theme.colors.primary : theme.colors.grayDark};
-  transition: color 150ms ease;
+  transition: color 200ms ease;
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
 `;
 
-const Title = styled.label`
-  ${({ theme }) => styledSmall(theme)};
-  color: ${({ theme }) => theme.colors.dark};
-  font-weight: 600;
+/** The row's name, rendered as the switch's own label so the words are part of
+ *  the hit target rather than decoration beside it. */
+const Title = styled(TileName)`
   cursor: pointer;
 `;
 
@@ -87,13 +79,15 @@ export function MatchHeightToggle({
   onChange,
 }: MatchHeightToggleProps) {
   return (
-    <Row>
+    <Tile>
       <Copy>
         <TitleLine>
           <Glyph $on={checked}>
-            <Icon name="PanelTop" size={14} />
+            <Icon name="PanelTop" size={20} />
           </Glyph>
-          <Title htmlFor={TOGGLE_ID}>Match page height</Title>
+          <Title as="label" htmlFor={TOGGLE_ID}>
+            Match page height
+          </Title>
         </TitleLine>
         <Hint>
           Adds this window's measured toolbars on top, so 1440 × 900 becomes a
@@ -109,6 +103,6 @@ export function MatchHeightToggle({
           $size="small"
         />
       </Switch>
-    </Row>
+    </Tile>
   );
 }

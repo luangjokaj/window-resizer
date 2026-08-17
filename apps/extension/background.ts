@@ -1,7 +1,7 @@
 /**
  * The service worker exists for the two jobs only it can do: answering the
- * toolbar click, and running once on install. Everything else — reading the
- * open windows, measuring chrome, performing the resize — happens in the
+ * toolbar click, and running once on install. Everything else (reading the
+ * open windows, measuring chrome, performing the resize) happens in the
  * resizer page, which holds the same `chrome.windows`, `chrome.tabs`, and
  * `chrome.scripting` APIs and needs no round-trip to reach them.
  *
@@ -24,15 +24,19 @@ const WELCOME_PAGE = "tabs/welcome.html";
  * side, tall enough to show the presets without scrolling on most displays.
  *
  * The height tracks what the page actually measures. With the default seven
- * saved sizes the column is a little over 600px tall and grows by one row per
- * open window, so this covers the ordinary case of two or three windows with
- * nothing to scroll to and nothing left empty underneath. Someone running many
- * windows at once scrolls the list, which is the same trade the panel has
- * always made; sizing for that case instead would leave everyone else looking
- * at 200px of blank surface.
+ * saved sizes and one other window open the column measures 800px, and grows by
+ * 49px per additional window, so this covers the ordinary one- or two-window
+ * case with nothing to scroll to and nothing left empty underneath. The value is the
+ * window's outer height, and a popup window's own title bar eats 30-40px of it
+ * on most platforms, which is what the slack above 800 is for.
+ *
+ * Someone running many windows at once scrolls the list, which is the same
+ * trade the panel has always made; sizing for that case instead would leave
+ * everyone else looking at 200px of blank surface. A display shorter than this
+ * clamps the window and the list scrolls, which is also the old behaviour.
  */
 const RESIZER_WINDOW_WIDTH = 460;
-const RESIZER_WINDOW_HEIGHT = 720;
+const RESIZER_WINDOW_HEIGHT = 880;
 
 function pageUrl(page: string): string {
   return chrome.runtime.getURL(page);

@@ -9,11 +9,11 @@
  *
  * It opens in an ordinary tab rather than the 460px resizer window, so it is
  * the one surface here with room to breathe. It still borrows the resizer's
- * vocabulary wholesale: the same tracked legends, the same framed panels, the
- * same wordmark and version chip. The first thing someone sees should already
- * look like the thing they are about to use, and the way to guarantee that is
- * to build it out of the same parts rather than out of parts that resemble
- * them.
+ * vocabulary wholesale: the same cards, the same centred title bars, the same
+ * page wash, the same wordmark and version chip. The first thing someone sees
+ * should already look like the thing they are about to use, and the way to
+ * guarantee that is to build it out of the same parts rather than out of parts
+ * that resemble them.
  */
 
 import styled from "styled-components";
@@ -23,22 +23,18 @@ import {
   Icon,
   MaxWidth,
   ThemeToggle,
-  alpha,
   buttonStyles,
   styledH2,
+  styledSmall,
   styledText,
 } from "cherry-styled-components";
+import { Card, Numeric, Tile, pageSurface } from "~components/Card";
 import { Logo } from "~components/Logo";
-import { Numeric, Panel, PanelBlock } from "~components/Panel";
 import { ThemeProvider } from "~lib/ThemeProvider";
 
 import "./page.css";
 
 const REPO_URL = "https://github.com/luangjokaj/window-resizer";
-
-/** The width the wash is drawn into. A tab is as wide as the display, and a
- *  percentage stop would put the glow somewhere different on every monitor. */
-const WASH_WIDTH_PX = 900;
 
 function readVersion(): string {
   try {
@@ -52,21 +48,10 @@ function readVersion(): string {
 const VERSION = readVersion();
 
 const Shell = styled.main`
+  ${pageSurface};
   min-height: 100vh;
   padding-bottom: ${({ theme }) => theme.spacing.padding.lg};
   color: ${({ theme }) => theme.colors.dark};
-  background:
-    radial-gradient(
-      ${WASH_WIDTH_PX}px 420px at 20% 0%,
-      ${({ theme }) => alpha(theme.colors.primary, 16)},
-      transparent 70%
-    ),
-    linear-gradient(
-      180deg,
-      ${({ theme }) => alpha(theme.colors.primary, 7)},
-      transparent 420px
-    ),
-    ${({ theme }) => theme.colors.light};
 `;
 
 const Stack = styled.div`
@@ -83,6 +68,7 @@ const Header = styled.header`
 `;
 
 const VersionChip = styled(Numeric)`
+  ${({ theme }) => styledSmall(theme)};
   flex: 0 0 auto;
   margin-right: auto;
   padding: 0 ${({ theme }) => theme.spacing.radius.xs};
@@ -171,8 +157,8 @@ function Welcome() {
                 it one click away.
               </Callout>
 
-              <PanelBlock title="What it does">
-                <Panel>
+              <Card title="What it does">
+                <Tile>
                   <FeatureList>
                     <Feature>
                       <Icon name="AppWindow" size={20} />
@@ -202,11 +188,11 @@ function Welcome() {
                       happens instead of being left guessing.
                     </Feature>
                   </FeatureList>
-                </Panel>
-              </PanelBlock>
+                </Tile>
+              </Card>
 
-              <PanelBlock title="Your data">
-                <Panel>
+              <Card title="Your data">
+                <Tile>
                   <Lead>
                     No telemetry, no accounts, nothing leaves your machine. The
                     sizes you save live in the browser's own extension storage,
@@ -214,8 +200,8 @@ function Welcome() {
                     toolbar height, is optional, asked for only when you switch
                     it on, and handed straight back when you switch it off.
                   </Lead>
-                </Panel>
-              </PanelBlock>
+                </Tile>
+              </Card>
 
               <ButtonLink
                 href={REPO_URL}
