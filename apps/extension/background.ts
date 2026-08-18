@@ -1,7 +1,7 @@
 /**
  * The service worker exists for the two jobs only it can do: answering the
- * toolbar click, and running once on install. Everything else — reading the
- * open windows, measuring chrome, performing the resize — happens in the
+ * toolbar click, and running once on install. Everything else (reading the
+ * open windows, measuring chrome, performing the resize) happens in the
  * resizer page, which holds the same `chrome.windows`, `chrome.tabs`, and
  * `chrome.scripting` APIs and needs no round-trip to reach them.
  *
@@ -19,10 +19,23 @@ import { storageGet, storageSet } from "~lib/storage";
 const RESIZER_PAGE = "tabs/resizer.html";
 const WELCOME_PAGE = "tabs/welcome.html";
 
-/** Roughly a phone-shaped panel: wide enough for two dimension fields side by
- *  side, tall enough to show the presets without scrolling on most displays. */
+/**
+ * Roughly a phone-shaped panel: wide enough for two dimension fields side by
+ * side, tall enough to show the presets without scrolling on most displays.
+ *
+ * The height is the window's outer height, so a popup's own title bar eats
+ * 30-40px of it on most platforms. With the default seven saved sizes and one
+ * other window open the column measures 800px and grows by 49px per additional
+ * window, so at this value the last row sits about a title bar's worth below
+ * the fold and the panel opens very slightly scrolled.
+ *
+ * That is the deliberate trade: a window that reads as the intended size beats
+ * one sized to guarantee the final row is visible, and someone running several
+ * windows at once scrolls the list either way. A display shorter than this
+ * clamps the window and the list scrolls, which is the old behaviour.
+ */
 const RESIZER_WINDOW_WIDTH = 460;
-const RESIZER_WINDOW_HEIGHT = 820;
+const RESIZER_WINDOW_HEIGHT = 800;
 
 function pageUrl(page: string): string {
   return chrome.runtime.getURL(page);

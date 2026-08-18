@@ -356,7 +356,7 @@ export async function resizeWindow(
     Math.abs(actualHeight - requestedOuterHeight) > CLAMP_TOLERANCE_PX;
 
   const clampNote = clamped
-    ? `The browser clamped this to ${actualWidth} x ${actualHeight} — that is as close as it allows on this display.`
+    ? `The browser clamped this to ${actualWidth} x ${actualHeight}. That is as close as it allows on this display.`
     : undefined;
 
   return {

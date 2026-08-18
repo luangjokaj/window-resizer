@@ -1,5 +1,5 @@
 /**
- * The resizer window — the whole product, in one 460px column.
+ * The resizer window: the whole product, in one 460px column.
  *
  * It runs as an extension page in a popup-type window rather than as a toolbar
  * popup (see background.ts for why), so it stays open while the windows it
@@ -13,26 +13,34 @@
  * just did to another window.
  *
  * Reasons and notes come out of ~lib/resize and ~lib/presets already written
- * for a person. They are shown verbatim — never prefixed, never re-worded —
+ * for a person. They are shown verbatim, never prefixed and never re-worded,
  * because a second vocabulary for the same failure is how the two drift apart.
+ *
+ * The order of the cards is the order of the sentence someone is composing:
+ * which window, how heights are counted in it, a size to type, and the sizes
+ * already saved. Everything on the page is sized against the fact that
+ * scrolling to reach a preset defeats the reason this is a window and not a
+ * popup, which is why the card rows are 12px rather than the 20px the design
+ * originally used.
  */
 
 import { useEffect, useState, type ChangeEvent } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import {
-  Button,
   Icon,
+  IconButton,
   ThemeToggle,
   ToastNotifications,
   ToastNotificationsProvider,
-  Toggle,
-  alpha,
+  styledSmall,
   useToastNotifications,
 } from "cherry-styled-components";
+import { AboutModal } from "~components/AboutModal";
+import { Card, MiniAction, Numeric, pageSurface } from "~components/Card";
 import { CustomSizeForm } from "~components/CustomSizeForm";
 import { Logo } from "~components/Logo";
+import { MatchHeightToggle } from "~components/MatchHeightToggle";
 import { PresetList } from "~components/PresetList";
-import { Hint, Numeric, Section } from "~components/Section";
 import { WindowPicker } from "~components/WindowPicker";
 import { ThemeProvider } from "~lib/ThemeProvider";
 import {
@@ -64,7 +72,7 @@ import {
 import "./page.css";
 
 /** Long enough to read a size back, short enough not to stack up while
- *  clicking through several presets in a row — which is the whole reason this
+ *  clicking through several presets in a row, which is the whole reason this
  *  is a window and not a popup, so it is the case to tune for. */
 const TOAST_SUCCESS_MS = 2500;
 
@@ -89,66 +97,88 @@ function readVersion(): string {
 
 const VERSION = readVersion();
 
+/** A short rise, once, as the window opens. It is felt on every open, so it is
+ *  kept under a fifth of a second: enough to make the column assemble rather
+ *  than appear, not enough to be waited on. */
+const riseIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+`;
+
 const Shell = styled.main`
+  ${pageSurface};
   display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.gridGap.xs};
   box-sizing: border-box;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.radius.lg};
   width: 100%;
   min-height: 100vh;
-  padding: ${({ theme }) => theme.spacing.padding.xs};
+  padding: ${({ theme }) => theme.spacing.radius.lg};
   color: ${({ theme }) => theme.colors.dark};
-  /* A brand wash that fades out below the header, so the top of the window
-     carries the product's blue without a solid bar eating 60px of a short
-     column. The stop is a fixed distance, not a percentage: the page grows
-     with the number of saved sizes, and a percentage would slide the wash
-     further down the page every time someone adds one. */
-  background:
-    linear-gradient(
-      180deg,
-      ${({ theme }) => alpha(theme.colors.primary, 12)},
-      transparent 240px
-    ),
-    ${({ theme }) => theme.colors.light};
+
+  > * {
+    animation: ${riseIn} 180ms ease-out both;
+  }
+
+  > *:nth-child(2) {
+    animation-delay: 30ms;
+  }
+
+  > *:nth-child(3) {
+    animation-delay: 60ms;
+  }
+
+  > *:nth-child(4) {
+    animation-delay: 90ms;
+  }
+
+  > *:nth-child(5) {
+    animation-delay: 120ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    > * {
+      animation: none;
+    }
+  }
 `;
 
 const Header = styled.header`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.radius.lg};
-  padding-bottom: ${({ theme }) => theme.spacing.radius.lg};
-  border-bottom: solid 1px ${({ theme }) => theme.colors.grayLight};
+  gap: ${({ theme }) => theme.spacing.radius.xs};
 `;
 
-const Footer = styled.footer`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.radius.lg};
-  /* Pins the footer to the bottom of a short page without pinning it over the
-     content of a tall one. */
-  margin-top: auto;
-  padding-top: ${({ theme }) => theme.spacing.radius.lg};
-  border-top: solid 1px ${({ theme }) => theme.colors.grayLight};
-`;
-
-/** Pinned right on its own, so the footer keeps its shape on the one screen
- *  where the reset beside it is hidden. */
-const Version = styled(Hint)`
-  margin-left: auto;
+/** The version, reduced to the only part of it anyone reads. The wordmark
+ *  beside it already says which extension this is, which is what lets the
+ *  footer that used to carry both disappear. */
+const VersionChip = styled(Numeric)`
+  ${({ theme }) => styledSmall(theme)};
+  flex: 0 0 auto;
+  margin-right: auto;
+  padding: 0 ${({ theme }) => theme.spacing.radius.xs};
+  border: solid 1px ${({ theme }) => theme.colors.grayLight};
+  border-radius: ${({ theme }) => theme.spacing.radius.xl};
+  color: ${({ theme }) => theme.colors.grayDark};
 `;
 
 /**
  * Phrases a successful resize. The granted size is reported rather than the
- * requested one — ~lib/resize reads the window back precisely because the two
- * differ — and the page height is spelled out separately when toolbars were
+ * requested one (~lib/resize reads the window back precisely because the two
+ * differ) and the page height is spelled out separately when toolbars were
  * folded in, since that number is the one that was actually asked for.
  */
 function describeResize(outcome: Extract<ResizeOutcome, { ok: true }>): string {
   const summary =
     outcome.chromeHeight > 0
-      ? `Resized to ${outcome.width} × ${outcome.height} — a ${
+      ? `Resized to ${outcome.width} × ${outcome.height}, a ${
           outcome.height - outcome.chromeHeight
         }px page.`
       : `Resized to ${outcome.width} × ${outcome.height}.`;
@@ -166,6 +196,7 @@ function ResizerPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [matchInnerHeight, setMatchInnerHeight] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   const notifyError = (text: string) =>
     addNotification(text, { color: "error", autoHide: TOAST_ERROR_MS });
@@ -281,7 +312,7 @@ function ResizerPage() {
 
       if (!(await saveMatchInnerHeight(true))) {
         setMatchInnerHeight(false);
-        notifyError("Could not save that setting — storage refused.");
+        notifyError("Could not save that setting: storage refused.");
       }
     });
   }
@@ -330,7 +361,7 @@ function ResizerPage() {
 
   async function removePreset(preset: Preset) {
     if (!(await deletePreset(preset.name))) {
-      notifyError(`Could not delete ${preset.name} — storage refused.`);
+      notifyError(`Could not delete ${preset.name}: storage refused.`);
       return;
     }
 
@@ -340,7 +371,7 @@ function ResizerPage() {
 
   async function restoreDefaults() {
     if (!(await resetPresets())) {
-      notifyError("Could not restore the default sizes — storage refused.");
+      notifyError("Could not restore the default sizes: storage refused.");
       return;
     }
 
@@ -351,36 +382,44 @@ function ResizerPage() {
   return (
     <Shell>
       <Header>
-        <Logo />
+        <Logo width={160} />
+        <VersionChip>{VERSION}</VersionChip>
+        <IconButton
+          aria-label="About Window Resizer"
+          onClick={() => setAboutOpen(true)}
+          title="About Window Resizer"
+          type="button"
+        >
+          <Icon name="CircleQuestionMark" />
+        </IconButton>
         <ThemeToggle aria-label="Switch between the light and dark theme" />
       </Header>
 
-      <Section
-        title="Target window"
-        hint="The window every resize below applies to."
-      >
+      <AboutModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+        version={VERSION}
+      />
+
+      <Card title="Select Window">
         <WindowPicker
           onFocus={focusWindow}
           onSelect={setSelectedId}
           selectedId={selectedId}
           windows={windows}
         />
-      </Section>
+      </Card>
 
-      <Section
-        title="Match page height"
-        hint="Heights become the page viewport: the browser's toolbars are measured in the target window and added on top, so 1440 × 900 gives a 900px-tall page rather than a 900px-tall window."
-      >
-        <Toggle
+      <Card title="Window Settings">
+        <MatchHeightToggle
           checked={matchInnerHeight}
-          id="match-inner-height"
           onChange={handleMatchInnerHeightChange}
-          $label="Measure and add the browser's toolbars"
         />
-      </Section>
+      </Card>
 
-      <Section title="Custom size">
+      <Card title="Add New">
         <CustomSizeForm
+          matchInnerHeight={matchInnerHeight}
           onInvalid={notifyError}
           onResize={({ height, width }) => {
             void applySize(width, height);
@@ -389,11 +428,27 @@ function ResizerPage() {
             void savePreset(type, width, height);
           }}
         />
-      </Section>
+      </Card>
 
-      <Section
-        title="Saved sizes"
-        aside={presets.length > 0 ? <Numeric>{presets.length}</Numeric> : null}
+      <Card
+        title="Select Size"
+        /* An emptied list already offers this, right where the sizes were.
+           Two identical controls a few rows apart is the smell, not the
+           duplication of intent. */
+        aside={
+          presets.length > 0 ? (
+            <MiniAction
+              onClick={() => {
+                void restoreDefaults();
+              }}
+              title="Bring back the sizes this extension ships with"
+              type="button"
+            >
+              <Icon name="RotateCcw" />
+              Reset
+            </MiniAction>
+          ) : null
+        }
       >
         <PresetList
           onApply={({ height, width }) => {
@@ -407,28 +462,7 @@ function ResizerPage() {
           }}
           presets={presets}
         />
-      </Section>
-
-      <Footer>
-        {/* An emptied list already offers this, right where the sizes were.
-            Two identical buttons a few rows apart is the smell, not the
-            duplication of intent. */}
-        {presets.length > 0 ? (
-          <Button
-            onClick={() => {
-              void restoreDefaults();
-            }}
-            type="button"
-            $icon={<Icon name="RotateCcw" />}
-            $outline
-            $size="small"
-            $variant="tertiary"
-          >
-            Reset defaults
-          </Button>
-        ) : null}
-        <Version>Window Resizer {VERSION}</Version>
-      </Footer>
+      </Card>
     </Shell>
   );
 }

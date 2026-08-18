@@ -4,7 +4,7 @@
  * Every preset row is otherwise two numbers and nothing else, so the glyph is
  * the only thing that lets someone find the phone sizes in a list of seven at a
  * glance. Icon and label live together because they are the same decision made
- * twice — the picker names the type, the row draws it — and splitting them is
+ * twice, the picker naming the type and the row drawing it, and splitting is
  * how a "laptop" ends up wearing a monitor.
  *
  * Both maps are keyed by `DeviceType` rather than by string, so adding a type

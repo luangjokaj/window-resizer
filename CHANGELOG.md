@@ -5,6 +5,46 @@ All notable changes to Window Resizer are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **An About dialog**, opened by a new question-mark button beside the
+  theme toggle (`components/AboutModal.tsx`). It carries the installed
+  version, what the extension does, a link to the repository, and how to
+  get in touch. The panel has no menu bar and no footer, so this is the
+  only place those live.
+
+### Changed
+
+- **The panel returns to the card design, in both themes.** One shared
+  visual vocabulary (`components/Card.tsx`: `Card`, `Tile`,
+  `TileButton`, `TileName`, `TileNote`, `Hint`, `Numeric`,
+  `MiniAction`, `dividedRows`, `pageSurface`) replaces the previous
+  `Panel.tsx` and the `Section.tsx` before it. Cards sit on a tinted
+  page, each with a centred title bar and hairline-separated rows:
+  Select Window, Window Settings, Add New, Select Size. Row padding is
+  12px rather than the original design's 20px, which makes the column
+  about a quarter shorter while reading the same.
+- **Saved sizes are full-width rows again**, with the device glyph on
+  the left, a round resize control pinned right, and a delete that
+  slides in when the row is pointed at or focused.
+- **Device type is picked from glyphs, not a dropdown.** The Add New
+  row's device button expands a row of the same four icons a saved
+  size wears.
+- **Dark mode.** The card separates from the page by being a genuinely
+  lighter surface with a hairline border, rather than by a shadow;
+  shadows are light-theme only. The dark gray family was re-pitched
+  against the card instead of against the page (`grayLight`
+  `#18202E` → `#232D42`, `gray` `#3F4B60` → `#5C6A85`) so hairlines,
+  input borders, and placeholder text all survive on it.
+- **Match page height is a single row** (`MatchHeightToggle.tsx`)
+  inside the Window Settings card rather than a full section.
+- `RESIZER_WINDOW_HEIGHT` moved from 720 to 800, matching what the
+  card design measures with one other window open and the seven
+  default sizes.
+- The welcome page is built from the same cards as the panel.
+
 ## [0.1.0] - 2026-08-16
 
 A full rebuild. The extension keeps what it always did — pick a window, click a

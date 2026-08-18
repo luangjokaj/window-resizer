@@ -4,13 +4,16 @@
  * It exists to answer the one question a freshly installed extension cannot
  * answer for itself: where did it go. Window Resizer has no toolbar popup and
  * no options page, so without this someone would install it and see nothing
- * happen — hence the "click the toolbar icon" line sitting above everything
+ * happen, hence the "click the toolbar icon" line sitting above everything
  * else on the page.
  *
  * It opens in an ordinary tab rather than the 460px resizer window, so it is
- * the one surface here with room to breathe. Everything else — the theme, the
- * section rhythm, the wordmark — is deliberately the resizer's, so the first
- * thing someone sees already looks like the thing they are about to use.
+ * the one surface here with room to breathe. It still borrows the resizer's
+ * vocabulary wholesale: the same cards, the same centred title bars, the same
+ * page wash, the same wordmark and version chip. The first thing someone sees
+ * should already look like the thing they are about to use, and the way to
+ * guarantee that is to build it out of the same parts rather than out of parts
+ * that resemble them.
  */
 
 import styled from "styled-components";
@@ -20,30 +23,35 @@ import {
   Icon,
   MaxWidth,
   ThemeToggle,
-  alpha,
   buttonStyles,
   styledH2,
+  styledSmall,
   styledText,
 } from "cherry-styled-components";
+import { Card, Numeric, Tile, pageSurface } from "~components/Card";
 import { Logo } from "~components/Logo";
-import { Section } from "~components/Section";
 import { ThemeProvider } from "~lib/ThemeProvider";
 
 import "./page.css";
 
 const REPO_URL = "https://github.com/luangjokaj/window-resizer";
 
+function readVersion(): string {
+  try {
+    return chrome.runtime.getManifest().version;
+  } catch {
+    // Not an extension runtime. The number is decoration here, not function.
+    return "1.0.0";
+  }
+}
+
+const VERSION = readVersion();
+
 const Shell = styled.main`
+  ${pageSurface};
   min-height: 100vh;
   padding-bottom: ${({ theme }) => theme.spacing.padding.lg};
   color: ${({ theme }) => theme.colors.dark};
-  background:
-    linear-gradient(
-      180deg,
-      ${({ theme }) => alpha(theme.colors.primary, 12)},
-      transparent 320px
-    ),
-    ${({ theme }) => theme.colors.light};
 `;
 
 const Stack = styled.div`
@@ -55,9 +63,18 @@ const Stack = styled.div`
 const Header = styled.header`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: ${({ theme }) => theme.spacing.gridGap.xs};
+  gap: ${({ theme }) => theme.spacing.radius.xs};
   padding: ${({ theme }) => theme.spacing.padding.xs} 0;
+`;
+
+const VersionChip = styled(Numeric)`
+  ${({ theme }) => styledSmall(theme)};
+  flex: 0 0 auto;
+  margin-right: auto;
+  padding: 0 ${({ theme }) => theme.spacing.radius.xs};
+  border: solid 1px ${({ theme }) => theme.colors.grayLight};
+  border-radius: ${({ theme }) => theme.spacing.radius.xl};
+  color: ${({ theme }) => theme.colors.grayDark};
 `;
 
 const Tagline = styled.h1`
@@ -75,7 +92,7 @@ const Lead = styled.p`
 const FeatureList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.radius.xs};
+  gap: ${({ theme }) => theme.spacing.radius.lg};
   margin: 0;
   padding: 0;
   list-style: none;
@@ -118,6 +135,7 @@ function Welcome() {
           <MaxWidth $size={680}>
             <Header>
               <Logo width={240} />
+              <VersionChip>{VERSION}</VersionChip>
               <ThemeToggle aria-label="Switch between the light and dark theme" />
             </Header>
 
@@ -126,8 +144,8 @@ function Welcome() {
               <Lead>
                 Window Resizer sets a browser window to precise pixel
                 dimensions, so a layout can be checked at the size it will
-                actually be seen at — phone, tablet, laptop, or a number you
-                type yourself.
+                actually be seen at: phone, tablet, laptop, or a number you type
+                yourself.
               </Lead>
 
               <Callout $type="info" $icon="MousePointerClick">
@@ -135,51 +153,55 @@ function Welcome() {
                 it. It opens in its own small window rather than a dropdown, so
                 it stays put while the windows it resizes take and lose focus. A
                 newly installed extension is usually tucked behind the
-                puzzle-piece menu — open that menu and pin Window Resizer to
-                keep it one click away.
+                puzzle-piece menu: open that menu and pin Window Resizer to keep
+                it one click away.
               </Callout>
 
-              <Section title="What it does">
-                <FeatureList>
-                  <Feature>
-                    <Icon name="AppWindow" size={20} />
-                    Resize any open window, not just the one in front. The list
-                    stays live as windows open, close, and change size.
-                  </Feature>
-                  <Feature>
-                    <Icon name="Bookmark" size={20} />
-                    Seven common sizes to start with, plus any you save. Click
-                    one to apply it.
-                  </Feature>
-                  <Feature>
-                    <Icon name="Ruler" size={20} />
-                    Type an exact width and height for a one-off size, and
-                    resize on the spot.
-                  </Feature>
-                  <Feature>
-                    <Icon name="PanelTop" size={20} />
-                    Optionally match the page height: the browser's toolbars are
-                    measured in that window and added on top, so the viewport
-                    ends up the size you asked for.
-                  </Feature>
-                  <Feature>
-                    <Icon name="Check" size={20} />
-                    Reports what the browser actually granted. Window managers
-                    clamp sizes to the display, and you are told when that
-                    happens instead of being left guessing.
-                  </Feature>
-                </FeatureList>
-              </Section>
+              <Card title="What it does">
+                <Tile>
+                  <FeatureList>
+                    <Feature>
+                      <Icon name="AppWindow" size={20} />
+                      Resize any open window, not just the one in front. The
+                      list stays live as windows open, close, and change size.
+                    </Feature>
+                    <Feature>
+                      <Icon name="Bookmark" size={20} />
+                      Seven common sizes to start with, plus any you save. Click
+                      one to apply it.
+                    </Feature>
+                    <Feature>
+                      <Icon name="Ruler" size={20} />
+                      Type an exact width and height for a one-off size, and
+                      resize on the spot.
+                    </Feature>
+                    <Feature>
+                      <Icon name="PanelTop" size={20} />
+                      Optionally match the page height: the browser's toolbars
+                      are measured in that window and added on top, so the
+                      viewport ends up the size you asked for.
+                    </Feature>
+                    <Feature>
+                      <Icon name="Check" size={20} />
+                      Reports what the browser actually granted. Window managers
+                      clamp sizes to the display, and you are told when that
+                      happens instead of being left guessing.
+                    </Feature>
+                  </FeatureList>
+                </Tile>
+              </Card>
 
-              <Section title="Your data">
-                <Lead>
-                  No telemetry, no accounts, nothing leaves your machine. The
-                  sizes you save live in the browser's own extension storage,
-                  and the one permission that reaches into a page — measuring
-                  toolbar height — is optional, asked for only when you switch
-                  it on, and handed straight back when you switch it off.
-                </Lead>
-              </Section>
+              <Card title="Your data">
+                <Tile>
+                  <Lead>
+                    No telemetry, no accounts, nothing leaves your machine. The
+                    sizes you save live in the browser's own extension storage,
+                    and the one permission that reaches into a page, measuring
+                    toolbar height, is optional, asked for only when you switch
+                    it on, and handed straight back when you switch it off.
+                  </Lead>
+                </Tile>
+              </Card>
 
               <ButtonLink
                 href={REPO_URL}

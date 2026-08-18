@@ -128,7 +128,7 @@ export async function addPreset(
 
   const updated = [candidate, ...presets];
   if (!(await savePresets(updated))) {
-    return { ok: false, reason: "Could not save the size — storage refused." };
+    return { ok: false, reason: "Could not save the size: storage refused." };
   }
   return { ok: true, presets: updated };
 }

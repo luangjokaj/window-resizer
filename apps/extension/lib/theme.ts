@@ -6,14 +6,14 @@
  * ring, and link in the extension inherits the product's identity for free.
  *
  * Dark mode cannot reuse those values. #0076FF is dim against a near-black
- * surface and #003B80 is unreadable on one, so the dark set is re-derived —
- * lighter and slightly desaturated — and the Light/Dark poles change meaning
+ * surface and #003B80 is unreadable on one, so the dark set is re-derived,
+ * lighter and slightly desaturated, and the Light/Dark poles change meaning
  * with the ground: on a dark surface hover *brightens*, so `primaryDark` is
  * the brighter blue there, the same inversion Cherry's own dark palette makes.
  *
  * Nothing here fetches a font. An extension page has to render with no network
- * at all, so the stack names Inter first — the face the original product used,
- * and one many machines already have — and falls through to the platform's own
+ * at all, so the stack names Inter first (the face the original product used,
+ * and one many machines already have) and falls through to the platform's own
  * UI face rather than to a download that may never arrive.
  */
 
@@ -58,8 +58,17 @@ const brandColorsLight: Theme["colors"] = {
 /**
  * The same three families lifted onto a near-black ground. Grays are tinted
  * toward the brand blue instead of neutral, so a hairline border reads as part
- * of the product rather than as a stray gray line, and `light` — the surface —
+ * of the product rather than as a stray gray line, and `light`, the surface,
  * carries the same tint at almost no lightness.
+ *
+ * The gray family is pitched against the *card*, not against the page. The
+ * panel stacks cards that sit slightly above `light`, so a border tuned to
+ * near-black is a border nobody can see once it is drawn on a card: an earlier
+ * pass had `grayLight` at #18202E and every input outline, every hairline, and
+ * every divider vanished the moment the card lifted. `grayLight` is therefore
+ * the lightest value that still reads as a hairline rather than as a rule, and
+ * `gray` is raised with it so placeholder text stays legible instead of merely
+ * being present. `grayDark`, the secondary text, is already well clear of both.
  */
 const brandColorsDark: Theme["colors"] = {
   ...baseDark.colors,
@@ -75,8 +84,8 @@ const brandColorsDark: Theme["colors"] = {
   tertiaryLight: "#475569",
   tertiary: "#94A3B8",
   tertiaryDark: "#CBD5E1",
-  grayLight: "#18202E",
-  gray: "#3F4B60",
+  grayLight: "#232D42",
+  gray: "#5C6A85",
   grayDark: "#93A1BC",
   light: DARK_SURFACE,
 };
